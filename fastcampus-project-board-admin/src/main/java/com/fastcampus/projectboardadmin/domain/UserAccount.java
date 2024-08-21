@@ -31,8 +31,8 @@ public class UserAccount extends AuditingFields {
     @Column(nullable = false)
     private Set<RoleType> roleTypes = new HashSet<>();
 
-    @Setter @Column(length = 100) private String email;
     @Setter @Column(length = 100) private String nickname;
+    @Setter @Column(length = 100) private String email;
     @Setter private String memo;
 
 
