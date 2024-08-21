@@ -1,8 +1,9 @@
 package com.fastcampus.projectboardadmin.domain.constant;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-@Getter
+@RequiredArgsConstructor
 public enum RoleType {
     USER("ROLE_USER"),
     MANAGER("ROLE_MANAGER"),
@@ -10,9 +11,6 @@ public enum RoleType {
     ADMIN("ROLE_ADMIN")
     ;
 
-    private final String name;
-
-    RoleType(String name) {
-        this.name = name;
-    }
+    @Getter
+    private final String roleName;
 }

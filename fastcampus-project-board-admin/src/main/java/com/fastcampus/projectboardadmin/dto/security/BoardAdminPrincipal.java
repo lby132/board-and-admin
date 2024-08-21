@@ -23,19 +23,16 @@ public record BoardAdminPrincipal(
         Map<String, Object> oAuth2Attributes
 ) implements UserDetails, OAuth2User {
 
-    public static BoardAdminPrincipal of(String username, String password, String email, String nickname, String memo) {
-        return BoardAdminPrincipal.of(username, password, email, nickname, memo, Map.of());
+    public static BoardAdminPrincipal of(String username, String password, Set<RoleType> roleTypes, String email, String nickname, String memo) {
+        return BoardAdminPrincipal.of(username, password, roleTypes, email, nickname, memo, Map.of());
     }
 
-    public static BoardAdminPrincipal of(String username, String password, String email, String nickname, String memo, Map<String, Object> oAuth2Attributes) {
-        // 지금은 인증만 하고 권한을 다루고 있지 않아서 임의로 세팅한다.
-        Set<RoleType> roleTypes = Set.of(RoleType.USER);
-
+    public static BoardAdminPrincipal of(String username, String password, Set<RoleType> roleTypes, String email, String nickname, String memo, Map<String, Object> oAuth2Attributes) {
         return new BoardAdminPrincipal(
                 username,
                 password,
                 roleTypes.stream()
-                        .map(RoleType::getName)
+                        .map(RoleType::getRoleName)
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toUnmodifiableSet())
                 ,
@@ -50,6 +47,7 @@ public record BoardAdminPrincipal(
         return BoardAdminPrincipal.of(
                 dto.userId(),
                 dto.userPassword(),
+                dto.roleTypes(),
                 dto.email(),
                 dto.nickname(),
                 dto.memo()
@@ -60,6 +58,11 @@ public record BoardAdminPrincipal(
         return UserAccountDto.of(
                 username,
                 password,
+                authorities.stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .map(RoleType::valueOf)
+                        .collect(Collectors.toUnmodifiableSet())
+                ,
                 email,
                 nickname,
                 memo
