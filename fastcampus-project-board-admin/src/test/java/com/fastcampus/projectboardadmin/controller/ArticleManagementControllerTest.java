@@ -72,31 +72,6 @@ class ArticleManagementControllerTest {
         then(articleManagementService).should().getArticle(articleId);
     }
 
-    private ArticleDto createArticleDto(String title, String content) {
-        return ArticleDto.of(
-                1L,
-                createUserAccountDto(),
-                title,
-                content,
-                null,
-                LocalDateTime.now(),
-                "Uno",
-                LocalDateTime.now(),
-                "Uno"
-        );
-    }
-
-    private UserAccountDto createUserAccountDto() {
-        return UserAccountDto.of(
-                "unoTest",
-                "pw",
-                Set.of(RoleType.ADMIN),
-                "uno-test@email.com",
-                "uno-test",
-                "test memo"
-        );
-    }
-
     @DisplayName("[view][POST] 게시글 삭제 - 정상 호출")
     @Test
     void givenArticleId_whenRequestingDeletion_thenRedirectsToArticleManagementView() throws Exception {
@@ -114,5 +89,31 @@ class ArticleManagementControllerTest {
                 .andExpect(redirectedUrl("/management/articles"));
         then(articleManagementService).should().deleteArticle(articleId);
     }
+
+
+    private ArticleDto createArticleDto(String title, String content) {
+        return ArticleDto.of(
+                1L,
+                createUserAccountDto(),
+                title,
+                content,
+                null,
+                LocalDateTime.now(),
+                "Uno",
+                LocalDateTime.now(),
+                "Uno"
+        );
+    }
+
+    private UserAccountDto createUserAccountDto() {
+        return UserAccountDto.of(
+                "unoTest",
+                Set.of(RoleType.ADMIN),
+                "uno-test@email.com",
+                "uno-test",
+                "test memo"
+        );
+    }
+
 
 }

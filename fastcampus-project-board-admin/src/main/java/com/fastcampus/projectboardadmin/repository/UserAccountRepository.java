@@ -1,7 +1,7 @@
 package com.fastcampus.projectboardadmin.repository;
 
-import com.fastcampus.projectboardadmin.domain.UserAccount;
+import com.fastcampus.projectboardadmin.domain.AdminAccount;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UserAccountRepository extends JpaRepository<UserAccount, String> {
+public interface UserAccountRepository extends JpaRepository<AdminAccount, String> {
 }
