@@ -26,6 +26,10 @@ public record UserAccountClientResponse(
         );
     }
 
+    public List<UserAccountDto> userAccounts() {
+        return null;
+    }
+
     public record Embedded(List<UserAccountDto> articles) {
     }
 

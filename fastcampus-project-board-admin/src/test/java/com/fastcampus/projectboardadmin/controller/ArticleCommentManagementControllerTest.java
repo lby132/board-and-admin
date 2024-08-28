@@ -1,5 +1,6 @@
 package com.fastcampus.projectboardadmin.controller;
 
+import com.fastcampus.projectboardadmin.config.GlobalControllerConfig;
 import com.fastcampus.projectboardadmin.config.TestSecurityConfig;
 import com.fastcampus.projectboardadmin.dto.ArticleCommentDto;
 import com.fastcampus.projectboardadmin.dto.UserAccountDto;
@@ -8,8 +9,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -21,44 +24,45 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@DisplayName("View 컨트롤러 - 댓글 관리")
-@Import(TestSecurityConfig.class)
+@DisplayName("컨트롤러 - 댓글 관리")
+@Import({TestSecurityConfig.class, GlobalControllerConfig.class})
 @WebMvcTest(ArticleCommentManagementController.class)
 class ArticleCommentManagementControllerTest {
 
     private final MockMvc mvc;
 
-    @Autowired
-    private ArticleCommentManagementService articleCommentManagementService;
+    @MockBean private ArticleCommentManagementService articleCommentManagementService;
 
     public ArticleCommentManagementControllerTest(@Autowired MockMvc mvc) {
         this.mvc = mvc;
     }
 
+    @WithMockUser(username = "tester", roles = "USER")
     @DisplayName("[view][GET] 댓글 관리 페이지 - 정상 호출")
     @Test
     void givenNothing_whenRequestingArticleCommentManagementView_thenReturnsArticleCommentManagementView() throws Exception {
-        // given
-        given(articleCommentManagementService.getArticlesComments()).willReturn(List.of());
+        // Given
+        given(articleCommentManagementService.getArticleComments()).willReturn(List.of());
 
-        // when & then
+        // When & Then
         mvc.perform(get("/management/article-comments"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
-                .andExpect(view().name("management/articleComments"))
+                .andExpect(view().name("management/article-comments"))
                 .andExpect(model().attribute("comments", List.of()));
-        then(articleCommentManagementService).should().getArticlesComments();
+        then(articleCommentManagementService).should().getArticleComments();
     }
 
-    @DisplayName("[view][GET] 댓글 1개 - 정상 호출")
+    @WithMockUser(username = "tester", roles = "USER")
+    @DisplayName("[data][GET] 댓글 1개 - 정상 호출")
     @Test
     void givenCommentId_whenRequestingArticleComment_thenReturnsArticleComment() throws Exception {
-        // given
+        // Given
         Long articleCommentId = 1L;
         ArticleCommentDto articleCommentDto = createArticleCommentDto("comment");
         given(articleCommentManagementService.getArticleComment(articleCommentId)).willReturn(articleCommentDto);
 
-        // when & then
+        // When & Then
         mvc.perform(get("/management/article-comments/" + articleCommentId))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -68,23 +72,24 @@ class ArticleCommentManagementControllerTest {
         then(articleCommentManagementService).should().getArticleComment(articleCommentId);
     }
 
+    @WithMockUser(username = "tester", roles = "MANAGER")
+    @DisplayName("[view][POST] 댓글 삭제 - 정상 호출")
     @Test
     void givenCommentId_whenRequestingDeletion_thenRedirectsToArticleCommentManagementView() throws Exception {
-        // given
+        // Given
         Long articleCommentId = 1L;
         willDoNothing().given(articleCommentManagementService).deleteArticleComment(articleCommentId);
 
-        // when & then
+        // When & Then
         mvc.perform(
-                post("/management/article-comments/" + articleCommentId)
-                        .with(csrf())
+                        post("/management/article-comments/" + articleCommentId)
+                                .with(csrf())
                 )
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/management/articleComments"))
+                .andExpect(view().name("redirect:/management/article-comments"))
                 .andExpect(redirectedUrl("/management/article-comments"));
         then(articleCommentManagementService).should().deleteArticleComment(articleCommentId);
     }
-
 
 
     private ArticleCommentDto createArticleCommentDto(String content) {

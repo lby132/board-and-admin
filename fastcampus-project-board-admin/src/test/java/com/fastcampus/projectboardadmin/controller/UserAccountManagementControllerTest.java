@@ -1,5 +1,6 @@
 package com.fastcampus.projectboardadmin.controller;
 
+import com.fastcampus.projectboardadmin.config.GlobalControllerConfig;
 import com.fastcampus.projectboardadmin.config.TestSecurityConfig;
 import com.fastcampus.projectboardadmin.dto.UserAccountDto;
 import com.fastcampus.projectboardadmin.service.UserAccountManagementService;
@@ -10,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -20,20 +22,21 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@DisplayName("View 컨트롤러 - 회원 관리")
-@Import(TestSecurityConfig.class)
+@DisplayName("컨트롤러 - 회원 관리")
+@Import({TestSecurityConfig.class, GlobalControllerConfig.class})
 @WebMvcTest(UserAccountManagementController.class)
 class UserAccountManagementControllerTest {
 
     private final MockMvc mvc;
 
-    @MockBean
-    private UserAccountManagementService userAccountManagementService;
+    @MockBean private UserAccountManagementService userAccountManagementService;
+
 
     public UserAccountManagementControllerTest(@Autowired MockMvc mvc) {
         this.mvc = mvc;
     }
 
+    @WithMockUser(username = "tester", roles = "USER")
     @DisplayName("[view][GET] 회원 관리 페이지 - 정상 호출")
     @Test
     void givenNothing_whenRequestingUserAccountManagementView_thenReturnsUserAccountManagementView() throws Exception {
@@ -49,6 +52,7 @@ class UserAccountManagementControllerTest {
         then(userAccountManagementService).should().getUserAccounts();
     }
 
+    @WithMockUser(username = "tester", roles = "USER")
     @DisplayName("[data][GET] 회원 1개 - 정상 호출")
     @Test
     void givenUserAccountId_whenRequestingUserAccount_thenReturnsUserAccount() throws Exception {
@@ -66,6 +70,7 @@ class UserAccountManagementControllerTest {
         then(userAccountManagementService).should().getUserAccount(userId);
     }
 
+    @WithMockUser(username = "tester", roles = "MANAGER")
     @DisplayName("[view][POST] 회원 삭제 - 정상 호출")
     @Test
     void givenUserAccountId_whenRequestingDeletion_thenRedirectsToUserAccountManagementView() throws Exception {
@@ -93,4 +98,5 @@ class UserAccountManagementControllerTest {
                 "test memo"
         );
     }
+
 }

@@ -1,5 +1,6 @@
 package com.fastcampus.projectboardadmin.controller;
 
+import com.fastcampus.projectboardadmin.config.GlobalControllerConfig;
 import com.fastcampus.projectboardadmin.config.TestSecurityConfig;
 import com.fastcampus.projectboardadmin.dto.ArticleDto;
 import com.fastcampus.projectboardadmin.dto.UserAccountDto;
@@ -11,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -22,26 +24,27 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@Import(TestSecurityConfig.class)
+@DisplayName("컨트롤러 - 게시글 관리")
+@Import({TestSecurityConfig.class, GlobalControllerConfig.class})
 @WebMvcTest(ArticleManagementController.class)
 class ArticleManagementControllerTest {
 
-    @MockBean
-    private ArticleManagementService articleManagementService;
-
     private final MockMvc mvc;
+
+    @MockBean private ArticleManagementService articleManagementService;
 
     public ArticleManagementControllerTest(@Autowired MockMvc mvc) {
         this.mvc = mvc;
     }
 
+    @WithMockUser(username = "tester", roles = "USER")
     @DisplayName("[view][GET] 게시글 관리 페이지 - 정상 호출")
     @Test
     void givenNothing_whenRequestingArticleManagementView_thenReturnsArticleManagementView() throws Exception {
-        // given
+        // Given
         given(articleManagementService.getArticles()).willReturn(List.of());
 
-        // when & then
+        // When & Then
         mvc.perform(get("/management/articles"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
@@ -50,15 +53,16 @@ class ArticleManagementControllerTest {
         then(articleManagementService).should().getArticles();
     }
 
-    @DisplayName("[view][GET] 게시글 1개 - 정상 호출")
+    @WithMockUser(username = "tester", roles = "USER")
+    @DisplayName("[data][GET] 게시글 1개 - 정상 호출")
     @Test
     void givenArticleId_whenRequestingArticle_thenReturnsArticle() throws Exception {
-        // given
+        // Given
         Long articleId = 1L;
         ArticleDto articleDto = createArticleDto("title", "content");
         given(articleManagementService.getArticle(articleId)).willReturn(articleDto);
 
-        // when & then
+        // When & Then
         mvc.perform(get("/management/articles/" + articleId))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -69,20 +73,21 @@ class ArticleManagementControllerTest {
         then(articleManagementService).should().getArticle(articleId);
     }
 
+    @WithMockUser(username = "tester", roles = "MANAGER")
     @DisplayName("[view][POST] 게시글 삭제 - 정상 호출")
     @Test
     void givenArticleId_whenRequestingDeletion_thenRedirectsToArticleManagementView() throws Exception {
-        // given
+        // Given
         Long articleId = 1L;
         willDoNothing().given(articleManagementService).deleteArticle(articleId);
 
-        // when & then
+        // When & Then
         mvc.perform(
-                        post("/management/articles")
+                        post("/management/articles/" + articleId)
                                 .with(csrf())
                 )
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("management/articles"))
+                .andExpect(view().name("redirect:/management/articles"))
                 .andExpect(redirectedUrl("/management/articles"));
         then(articleManagementService).should().deleteArticle(articleId);
     }
@@ -110,6 +115,5 @@ class ArticleManagementControllerTest {
                 "test memo"
         );
     }
-
 
 }

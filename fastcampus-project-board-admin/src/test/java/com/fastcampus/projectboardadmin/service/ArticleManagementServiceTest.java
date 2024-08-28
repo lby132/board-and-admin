@@ -5,6 +5,7 @@ import com.fastcampus.projectboardadmin.dto.UserAccountDto;
 import com.fastcampus.projectboardadmin.dto.properties.ProjectProperties;
 import com.fastcampus.projectboardadmin.dto.response.ArticleClientResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -30,11 +31,12 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 @DisplayName("비즈니스 로직 - 게시글 관리")
 class ArticleManagementServiceTest {
 
-//    @Disabled("실제 API 호출 결과 관찰용이므로 평상시엔 비활성화")
+    @Disabled("실제 API 호출 결과 관찰용이므로 평상시엔 비활성화")
     @DisplayName("실제 API 호출 테스트")
     @SpringBootTest
     @Nested
     class RealApiTest {
+
         private final ArticleManagementService sut;
 
         @Autowired
@@ -45,20 +47,20 @@ class ArticleManagementServiceTest {
         @DisplayName("게시글 API를 호출하면, 게시글을 가져온다.")
         @Test
         void givenNothing_whenCallingArticleApi_thenReturnsArticleList() {
-            // given
+            // Given
 
-            // when
+            // When
             List<ArticleDto> result = sut.getArticles();
 
-            // then
+            // Then
             System.out.println(result.stream().findFirst());
             assertThat(result).isNotNull();
         }
     }
 
     @DisplayName("API mocking 테스트")
-    @EnableConfigurationProperties(ProjectProperties.class) // 빈으로 등록해준다.
-    @AutoConfigureWebClient(registerRestTemplate = true) // 내가 설정한 resttemplate을 사용한다.
+    @EnableConfigurationProperties(ProjectProperties.class)
+    @AutoConfigureWebClient(registerRestTemplate = true)
     @RestClientTest(ArticleManagementService.class)
     @Nested
     class RestTemplateTest {
@@ -66,13 +68,16 @@ class ArticleManagementServiceTest {
         private final ArticleManagementService sut;
 
         private final ProjectProperties projectProperties;
-
-        private final MockRestServiceServer server; // restTemplate 사용할때 MockRestServiceServer라는 mock을 사용해야한다.
-
+        private final MockRestServiceServer server;
         private final ObjectMapper mapper;
 
         @Autowired
-        public RestTemplateTest(ArticleManagementService sut, ProjectProperties projectProperties, MockRestServiceServer server, ObjectMapper mapper) {
+        public RestTemplateTest(
+                ArticleManagementService sut,
+                ProjectProperties projectProperties,
+                MockRestServiceServer server,
+                ObjectMapper mapper
+        ) {
             this.sut = sut;
             this.projectProperties = projectProperties;
             this.server = server;
@@ -82,70 +87,70 @@ class ArticleManagementServiceTest {
         @DisplayName("게시글 목록 API를 호출하면, 게시글들을 가져온다.")
         @Test
         void givenNothing_whenCallingArticlesApi_thenReturnsArticleList() throws Exception {
-            // given
+            // Given
             ArticleDto expectedArticle = createArticleDto("제목", "글");
             ArticleClientResponse expectedResponse = ArticleClientResponse.of(List.of(expectedArticle));
             server
-                    .expect(requestTo(projectProperties.board().url() + "/api/articles?size=1000"))
+                    .expect(requestTo(projectProperties.board().url() + "/api/articles?size=10000"))
                     .andRespond(withSuccess(
                             mapper.writeValueAsString(expectedResponse),
                             MediaType.APPLICATION_JSON
                     ));
 
-            // when
+            // When
             List<ArticleDto> result = sut.getArticles();
 
-            // then
+            // Then
             assertThat(result).first()
                     .hasFieldOrPropertyWithValue("id", expectedArticle.id())
                     .hasFieldOrPropertyWithValue("title", expectedArticle.title())
                     .hasFieldOrPropertyWithValue("content", expectedArticle.content())
                     .hasFieldOrPropertyWithValue("userAccount.nickname", expectedArticle.userAccount().nickname());
-            server.verify(); // 위에 server.expect 테스트가 실제로 이루어져 있는지 확인
+            server.verify();
         }
 
-        @DisplayName("게시글 목록 API를 호출하면, 게시글을 가져온다.")
+        @DisplayName("게시글 ID와 함께 게시글 API을 호출하면, 게시글을 가져온다.")
         @Test
-        void givenNothing_whenCallingArticleApi_thenReturnsArticle() throws Exception {
-            // given
+        void givenArticleId_whenCallingArticleApi_thenReturnsArticle() throws Exception {
+            // Given
             Long articleId = 1L;
             ArticleDto expectedArticle = createArticleDto("게시판", "글");
             server
-                    .expect(requestTo(projectProperties.board().url() + "/api/articles/" + articleId))
+                    .expect(requestTo(projectProperties.board().url() + "/api/articles/" + articleId + "?projection=withUserAccount"))
                     .andRespond(withSuccess(
                             mapper.writeValueAsString(expectedArticle),
                             MediaType.APPLICATION_JSON
                     ));
 
-            // when
-            List<ArticleDto> result = sut.getArticles();
+            // When
+            ArticleDto result = sut.getArticle(articleId);
 
-            // then
-            assertThat(result).first()
+            // Then
+            assertThat(result)
                     .hasFieldOrPropertyWithValue("id", expectedArticle.id())
                     .hasFieldOrPropertyWithValue("title", expectedArticle.title())
                     .hasFieldOrPropertyWithValue("content", expectedArticle.content())
                     .hasFieldOrPropertyWithValue("userAccount.nickname", expectedArticle.userAccount().nickname());
-            server.verify(); // 위에 server.expect 테스트가 실제로 이루어져 있는지 확인
+            server.verify();
         }
 
-        @DisplayName("게시글 ID와 함꼐 게시글 삭제 API를 호출하면, 게시글을 삭제한다.")
+        @DisplayName("게시글 ID와 함께 게시글 삭제 API을 호출하면, 게시글을 삭제한다.")
         @Test
-        void givenArticleId_whenCallingDeleteArticleApi_thenDeletesAnArticle() throws Exception {
-            // given
+        void givenArticleId_whenCallingDeleteArticleApi_thenDeletesArticle() throws Exception {
+            // Given
             Long articleId = 1L;
-            ArticleDto expectedArticle = createArticleDto("게시판", "글");
             server
                     .expect(requestTo(projectProperties.board().url() + "/api/articles/" + articleId))
                     .andExpect(method(HttpMethod.DELETE))
                     .andRespond(withSuccess());
 
-            // when
+            // When
             sut.deleteArticle(articleId);
 
-            // then
+            // Then
             server.verify();
         }
+
 
         private ArticleDto createArticleDto(String title, String content) {
             return ArticleDto.of(
@@ -170,4 +175,5 @@ class ArticleManagementServiceTest {
             );
         }
     }
+
 }
