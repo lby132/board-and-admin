@@ -2,7 +2,7 @@
 <html lang="ko">
 <head id="layout-head">
     <meta charset="UTF-8">
-    <title>게시글 관리 페이지</title>
+    <title>회원 관리 페이지</title>
 
     <link rel="stylesheet" href="/js/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="/js/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
@@ -18,36 +18,30 @@
         <table id="main-table" class="table table-bordered table-striped">
             <thead>
             <tr>
-                <th>ID</th>
-                <th>제목</th>
+                <th>유저 ID</th>
+                <th>닉네임</th>
+                <th>이메일</th>
+                <th>메모</th>
                 <th>작성자</th>
                 <th>작성일시</th>
             </tr>
             </thead>
             <tbody>
             <tr>
-                <td>1</td>
-                <td><a data-toggle="modal" data-target="#layout-modal">새 글</a></td>
+                <td><a data-toggle="modal" data-target="#layout-modal">uno</a></td>
+                <td>Uno</td>
+                <td>uno@email.com</td>
+                <td>This is memo.</td>
                 <td>Uno</td>
                 <td><time datetime="2022-01-01T00:00:00">2022-01-01 00:00:00</time></td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td><a data-toggle="modal" data-target="#layout-modal">아무글</a></td>
-                <td>Uno</td>
-                <td><time datetime="2022-01-02T00:00:00">2022-01-02 00:00:00</time></td>
-            </tr>
-            <tr>
-                <td>3</td>
-                <td><a data-toggle="modal" data-target="#layout-modal">스프링 부트 블로그 정리</a></td>
-                <td>Uno</td>
-                <td><time datetime="2022-01-03T00:00:00">2022-01-03 00:00:00</time></td>
             </tr>
             </tbody>
             <tfoot>
             <tr>
-                <th>ID</th>
-                <th>제목</th>
+                <th>유저 ID</th>
+                <th>닉네임</th>
+                <th>이메일</th>
+                <th>메모</th>
                 <th>작성자</th>
                 <th>작성일시</th>
             </tr>
@@ -56,12 +50,12 @@
     </main>
     <!-- /.content -->
 
-    <div class="modal fade" id="layout-modal"></div>
-    <!-- /.modal -->
-
     <aside id="layout-right-aside">오른쪽 사이드 바 삽입부</aside>
     <footer id="layout-footer">푸터 삽입부</footer>
 </div>
+
+<div class="modal fade" id="layout-modal"></div>
+<!-- /.modal -->
 
 <!--/* REQUIRED SCRIPTS */-->
 <script id="layout-scripts">/* 공통 스크립트 삽입부 */</script>
@@ -91,17 +85,23 @@
 <script>
     $(document).ready(() => {
         $('#layout-modal').on('show.bs.modal', (event) => {
-            const id = $(event.relatedTarget).data('id');
+            console.log($(event.relatedTarget))
+            const userId = $(event.relatedTarget).data('id');
 
-            fetch(`/management/articles/${id}`)
+            fetch(`/management/user-accounts/${userId}`)
                 .then(response => response.json())
                 .then(data => {
-                    $('.modal-title').text(data.title);
-                    $('.modal-body pre').text(data.content);
-                    $('.modal-footer form').attr('action', `/management/articles/${id}`);
+                    const bodyText =
+                        "- 닉네임: " + data.nickname + "\n" +
+                        "- 이메일: " + data.email + "\n" +
+                        "- 메모: " + data.memo;
+
+                    $('.modal-title').text(data.nickname);
+                    $('.modal-body pre').text(bodyText);
+                    $('.modal-footer form').attr('action', `/management/user-accounts/${userId}`);
                 })
                 .catch(error => {
-                    console.error('게시글 로딩 실패: ', error);
+                    console.error('회원 정보 로딩 실패: ', error);
                 });
         });
     });
