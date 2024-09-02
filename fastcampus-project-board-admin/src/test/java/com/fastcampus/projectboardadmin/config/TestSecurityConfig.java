@@ -15,16 +15,14 @@ import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 
-
 @Import(SecurityConfig.class)
 @TestConfiguration
 public class TestSecurityConfig {
 
-    @MockBean
-    private AdminAccountService adminAccountService;
+    @MockBean private AdminAccountService adminAccountService;
 
     @BeforeTestMethod
-    public void securitySetUp() {
+    public void securitySetup() {
         given(adminAccountService.searchUser(anyString()))
                 .willReturn(Optional.of(createAdminAccountDto()));
         given(adminAccountService.saveUser(anyString(), anyString(), anySet(), anyString(), anyString(), anyString()))
@@ -33,7 +31,7 @@ public class TestSecurityConfig {
 
     private AdminAccountDto createAdminAccountDto() {
         return AdminAccountDto.of(
-                "unotTest",
+                "unoTest",
                 "pw",
                 Set.of(RoleType.USER),
                 "uno-test@email.com",
@@ -41,4 +39,5 @@ public class TestSecurityConfig {
                 "test memo"
         );
     }
+
 }

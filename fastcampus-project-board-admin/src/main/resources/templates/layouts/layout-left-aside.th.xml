@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <thlogic>
     <attr sel="#admin-logo-link" th:href="@{/}" />
-    <attr sel="#user-profile" th:href="@{#}" />
+    <attr sel="#user-profile" th:href="@{#}" sec:authorize="isAuthenticated()" sec:authentication="principal.nickname" />
     <attr sel="#management-category" th:classappend="${#request.requestURI.startsWith('/management')} ? 'active'" />
     <attr
             sel="#article-management"
@@ -24,4 +24,6 @@
             th:href="@{/admin/members}"
             th:classappend="${#request.requestURI.equals('/admin/members')} ? 'active'"
     />
+
+    <attr sel="#visit-count" th:text="${visitCount}" />
 </thlogic>
